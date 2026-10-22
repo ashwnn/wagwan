@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <title>Settings · Wagwan</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="top"><div class="wrap"><h1><a href="/for-you">Wagwan</a></h1><form action="/refresh" method="post"><button class="tbtn">Refresh</button></form></div></header>
+  <main class="wrap settings">
+    <h2>Settings</h2>
+    <section aria-labelledby="topics-heading">
+      <h3 id="topics-heading">Topics</h3>
+      <form action="/settings/topics" method="post" class="add">
+        <label for="topic-name">Add a topic</label><input id="topic-name" name="name" type="text" maxlength="120" placeholder="BC housing, Rust" required>
+        <button>Add topic</button>
+      </form>
+      <ul class="feeds">
+        {% for topic in topics %}<li>
+          <span>{{ topic.name }}</span>{% if topic.muted %}<span class="pill">Muted</span>{% endif %}
+          <div class="actions">
+            {% if topic.muted %}<form action="/settings/topics" method="post"><button name="unmute_id" value="{{ topic.id }}">Unmute</button></form>{% endif %}
+            <form action="/settings/topics" method="post"><button name="delete_id" value="{{ topic.id }}">Delete</button></form>
+          </div>
+        </li>{% endfor %}
+      </ul>
+      {% if topics.is_empty() %}<p class="empty">Add topics to shape your For you list.</p>{% endif %}
+    </section>
+    <section aria-labelledby="feeds-heading">
+      <h3 id="feeds-heading">Feeds</h3>
+      <form action="/settings/feeds" method="post" class="add">
+        <label for="feed-url">Feed URL</label><input id="feed-url" name="url" type="url" placeholder="https://example.com/feed" required>
+        <button>Add feed</button>
+      </form>
+      <ul class="feeds">
+        {% for feed in feeds %}<li>
+          {% if feed.url_safe %}<a href="{{ feed.url }}">{{ feed.title }}</a>{% else %}<span>{{ feed.title }}</span>{% endif %}
+          {% match feed.error %}{% when Some with (error) %}<p class="error">Failing: {{ error }}</p>{% when None %}{% if feed.last_ok %}<p>Fetching normally</p>{% else %}<p>Waiting for first fetch</p>{% endif %}{% endmatch %}
+          {% if feed.disabled %}<p>Paused after repeated failures</p>{% endif %}
+          {% if feed.muted %}<p>Muted</p>{% endif %}
+          <div class="actions">
+            {% if feed.error_count > 0 %}<form action="/settings/feeds" method="post"><button name="retry_id" value="{{ feed.id }}">Retry</button></form>{% endif %}
+            {% if feed.muted %}<form action="/settings/feeds" method="post"><button name="unmute_id" value="{{ feed.id }}">Unmute</button></form>{% else %}<form action="/mute/feed/{{ feed.id }}" method="post"><button>Mute</button></form>{% endif %}
+            <form action="/settings/feeds" method="post"><button name="delete_id" value="{{ feed.id }}">Delete</button></form>
+          </div>
+        </li>{% endfor %}
+      </ul>
+      {% if feeds.is_empty() %}<p class="empty">Add a feed or import your subscriptions below.</p>{% endif %}
+      <form action="/settings/opml" method="post" enctype="multipart/form-data" class="opml-form">
+        <label for="opml">Import OPML</label><input id="opml" type="file" name="opml" accept=".opml,.xml,text/xml,application/xml" required>
+        <button>Import</button>
+      </form>
+      <p><a href="/settings/opml">Export OPML</a></p>
+    </section>
+    <section aria-labelledby="muted-heading">
+      <h3 id="muted-heading">Muted</h3>
+      <ul class="feeds">
+        {% for topic in muted_topics %}<li>{{ topic.name }} <span class="muted-kind">Topic</span><form action="/settings/topics" method="post"><button name="unmute_id" value="{{ topic.id }}">Unmute</button></form></li>{% endfor %}
+        {% for feed in muted_feeds %}<li>{{ feed.title }} <span class="muted-kind">Feed</span><form action="/settings/feeds" method="post"><button name="unmute_id" value="{{ feed.id }}">Unmute</button></form></li>{% endfor %}
+      </ul>
+      {% if !has_muted %}<p class="empty">Nothing is muted.</p>{% endif %}
+    </section>
+    <section aria-labelledby="ai-heading">
+      <h3 id="ai-heading">AI</h3>
+      {% if ai_enabled %}<p>{{ ai_model }}</p>{% else %}<p>Off</p>{% endif %}
+    </section>
+    <section aria-labelledby="about-heading">
+      <h3 id="about-heading">About</h3>
+      <p>Version {{ version }}</p><p>{{ article_count }} articles stored · {{ data_size }}</p><p>Last fetch: {{ last_fetch }}</p>
+    </section>
+  </main>
+  <nav class="bar" aria-label="Sections"><div class="wrap"><a href="/for-you">For you</a><a href="/discover">Discover</a><a href="/saved">Saved</a><a class="cur" href="/settings" aria-current="page">Settings</a></div></nav>
+</body>
+</html>

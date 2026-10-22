@@ -1,0 +1,44 @@
+services:
+  wagwan:
+    image: ghcr.io/ashwnn/wagwan:latest
+    build: .
+    pull_policy: build
+    restart: unless-stopped
+    environment:
+      WAGWAN_TZ: ${WAGWAN_TZ:-UTC}
+      # WAGWAN_OPML_SEED: /config/feeds.opml
+      # WAGWAN_TOPICS_SEED: "BC housing,Rust,Open-source AI"
+      # WAGWAN_LLM_BASE_URL: http://ollama:11434/v1
+      # WAGWAN_LLM_MODEL: llama3.2:3b
+    volumes:
+      - wagwan-data:/data
+      # - ./feeds.opml:/config/feeds.opml:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD", "/wagwan", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      wagwan:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+
+volumes:
+  wagwan-data:
+  ollama-models:

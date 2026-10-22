@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>Subscriptions</title></head>
+  <body>
+    <outline text="World &amp; Politics" title="World &amp; Politics">
+      <outline text="Example Journal" title="Example Journal" type="rss" xmlUrl="https://example.org/world.xml?edition=full&amp;lang=en" htmlUrl="https://example.org/world" />
+      <outline text="Regional">
+        <outline text="The Coastal News" title="The Coastal News" type="rss" xmlUrl="https://news.example.net/rss?region=coast&amp;format=atom" />
+      </outline>
+    </outline>
+    <outline text="Technology" title="Technology">
+      <outline text="Signal &amp; Noise" type="rss" xmlUrl="https://tech.example.com/feed" />
+    </outline>
+  </body>
+</opml>

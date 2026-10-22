@@ -1,0 +1,15 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Fixture JSON Desk",
+  "home_page_url": "https://json.example.test/",
+  "feed_url": "https://json.example.test/feed.json",
+  "items": [
+    {
+      "id": "json-transit-1",
+      "url": "https://json.example.test/transit-update",
+      "title": "Transit service update",
+      "content_html": "<p>Evening service will resume after signal testing is complete.</p>",
+      "date_published": "2026-10-20T12:00:00Z"
+    }
+  ]
+}

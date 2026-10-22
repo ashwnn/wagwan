@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <title>{{ title }} · Wagwan</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <section class="view on" aria-label="Stories">
+    <header class="top"><div class="wrap"><h1><a href="/for-you">Wagwan</a></h1><form action="/refresh" method="post"><button class="tbtn">Refresh</button></form></div></header>
+    <main class="wrap">
+      <h2 class="visually-hidden">{{ title }}</h2>
+      <form class="search" action="/search" method="get">
+        <label class="visually-hidden" for="q">Search stories</label>
+        <input type="search" id="q" name="q" value="{{ query }}" placeholder="Search" enterkeyhint="search">
+        <button class="search-button">Search</button>
+      </form>
+      <p class="status" aria-live="polite">{{ status }}</p>
+      <p class="tabnote">{{ note }}</p>
+      <ul class="list">
+        {% for row in rows %}
+        <li>
+          <a class="row{% if row.read %} read{% endif %}" href="/s/{{ row.id }}">
+            <span class="txt"><span class="h">{{ row.title }}</span><span class="m">{{ row.meta }}</span></span>
+            <span class="pts"><b>{{ row.score }}</b>pts</span>
+          </a>
+        </li>
+        {% endfor %}
+        {% if rows.is_empty() %}<li class="empty">Nothing here yet.</li>{% endif %}
+      </ul>
+      {% if is_for_you && !lower_rows.is_empty() %}
+      <details class="low"><summary>{{ lower_rows.len() }} more, lower priority</summary>
+        <ul class="list">
+          {% for row in lower_rows %}
+          <li><a class="row{% if row.read %} read{% endif %}" href="/s/{{ row.id }}"><span class="txt"><span class="h">{{ row.title }}</span><span class="m">{{ row.meta }}</span></span><span class="pts"><b>{{ row.score }}</b>pts</span></a></li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </main>
+    <nav class="bar" aria-label="Sections"><div class="wrap">
+      <a class="{% if is_for_you %}cur{% endif %}" href="/for-you"{% if is_for_you %} aria-current="page"{% endif %}>For you</a>
+      <a class="{% if is_discover %}cur{% endif %}" href="/discover"{% if is_discover %} aria-current="page"{% endif %}>Discover</a>
+      <a class="{% if is_saved %}cur{% endif %}" href="/saved"{% if is_saved %} aria-current="page"{% endif %}>Saved</a>
+      <a href="/settings">Settings</a>
+    </div></nav>
+  </section>
+</body>
+</html>

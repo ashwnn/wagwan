@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Fixture RSS Desk</title>
+    <link>https://rss.example.test/</link>
+    <description>Synthetic RSS fixture for offline parser tests.</description>
+    <ttl>45</ttl>
+    <item>
+      <title>Harbour repairs begin Monday</title>
+      <link>https://rss.example.test/harbour-repairs</link>
+      <guid isPermaLink="false">rss-harbour-1</guid>
+      <pubDate>Tue, 20 Oct 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[<p>Crews will begin repairs to the eastern harbour wall on Monday.</p>]]></description>
+    </item>
+  </channel>
+</rss>

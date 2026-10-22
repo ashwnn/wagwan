@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+<title>Wagwan</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fff; --fg: #111; --dim: #6b6b6b; --rule: #e6e6e6; --link: #1558d6;
+  --press: #f2f2f2; --new: #fff6d6; --sheet: #fff; --shade: rgba(0,0,0,.35);
+  --bar-h: 56px; --safe-b: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111; --fg: #ececec; --dim: #9a9a9a; --rule: #262626; --link: #8ab4f8;
+          --press: #1d1d1d; --new: #2c2610; --sheet: #1b1b1b; --shade: rgba(0,0,0,.6); }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow-wrap: anywhere; }
+a { color: var(--link); text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+.wrap { max-width: 42rem; margin: 0 auto; }
+.view { display: none; padding-bottom: calc(var(--bar-h) + var(--safe-b) + 16px); }
+.view.on { display: block; }
+
+/* Top bar */
+.top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 16px; }
+.top h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -.01em; }
+.top .tbtn { min-height: 44px; padding: 0 4px; color: var(--link); display: inline-flex; align-items: center; font-size: 17px; }
+.search { padding: 8px 16px 4px; }
+.search input { width: 100%; font-size: 16px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--press); color: var(--fg); }
+.status { color: var(--dim); font-size: 13px; padding: 6px 16px 2px; }
+
+/* Story list */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { border-bottom: 1px solid var(--rule); }
+.row { display: block; padding: 14px 16px; color: var(--fg); }
+.row:active { background: var(--press); }
+.row .h { display: block; font-size: 17px; line-height: 1.35; font-weight: 600; color: var(--link); }
+.row.read .h { color: var(--dim); font-weight: 500; }
+.row .m { display: block; color: var(--dim); font-size: 13px; margin-top: 4px; }
+.row .m b { color: var(--fg); font-weight: 600; }
+.row { display: flex; gap: 12px; align-items: flex-start; }
+.row .txt { flex: 1; min-width: 0; }
+.pts { flex: none; min-width: 40px; text-align: right; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.pts b { display: block; font-size: 17px; color: var(--fg); font-weight: 600; line-height: 1.2; }
+.tabnote { color: var(--dim); font-size: 13px; padding: 2px 16px 8px; }
+.why { color: var(--dim); font-size: 14px; margin: -12px 0 18px; }
+.why b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.bar .ic { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.bar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.bar .on svg { fill: currentColor; fill-opacity: .18; }
+.bar .down.on { color: #c5221f; }
+@media (prefers-color-scheme: dark) { .bar .down.on { color: #f28b82; } }
+details.low { border-bottom: 1px solid var(--rule); }
+details.low summary { list-style: none; padding: 16px; color: var(--dim); font-size: 15px; min-height: 44px; }
+details.low summary::-webkit-details-marker { display: none; }
+details.low summary::after { content: " ›"; }
+details.low[open] summary::after { content: " ⌄"; }
+
+/* Bottom tab bar (list) and action bar (story) */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-top: 1px solid var(--rule); padding-bottom: var(--safe-b); }
+.bar .wrap { display: flex; height: var(--bar-h); }
+.bar button, .bar a { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--dim); min-height: 44px; }
+.bar .cur { color: var(--link); font-weight: 600; }
+.bar button:active { background: var(--press); }
+.bar .on { color: var(--link); font-weight: 600; }
+
+/* Reader */
+.story { padding: 4px 16px 0; }
+.story h2 { font-size: 24px; line-height: 1.25; margin: 14px 0 6px; letter-spacing: -.01em; }
+.when { color: var(--dim); font-size: 14px; margin: 0 0 18px; }
+.body { margin: 0 0 8px; font-size: 18px; line-height: 1.6; }
+.body .s { cursor: pointer; border-radius: 3px; text-decoration: underline dotted var(--rule); text-underline-offset: 5px; }
+.body .s.new { background: var(--new); }
+.body .s.sel { background: color-mix(in srgb, var(--link) 16%, transparent); text-decoration-color: var(--link); }
+.body .s.unv { color: var(--dim); }
+.h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 28px 0 8px; font-weight: 600; }
+.diff { margin: 0; padding: 0; list-style: none; }
+.diff li { padding: 10px 0; border-top: 1px solid var(--rule); font-size: 15px; }
+.diff li span { color: var(--dim); }
+.reads { margin: 0; padding: 0; list-style: none; }
+.reads a { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--rule); min-height: 44px; font-size: 16px; }
+.reads a::after { content: "›"; color: var(--dim); }
+.legend { color: var(--dim); font-size: 13px; margin-top: 18px; }
+.legend i { font-style: normal; background: var(--new); padding: 0 4px; border-radius: 3px; color: var(--fg); }
+
+/* Bottom sheet */
+.shade { position: fixed; inset: 0; background: var(--shade); z-index: 9; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.shade.on { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--sheet); border-radius: 14px 14px 0 0;
+         padding: 8px 16px calc(16px + var(--safe-b)); transform: translateY(105%); transition: transform .2s ease; max-width: 42rem; margin: 0 auto; }
+.sheet.on { transform: none; }
+.grip { width: 36px; height: 5px; border-radius: 3px; background: var(--rule); margin: 0 auto 12px; }
+.sheet .src { font-weight: 600; font-size: 16px; }
+.sheet .orig { color: var(--dim); font-size: 15px; margin: 6px 0 14px; }
+.sheet .warn { font-size: 14px; color: var(--dim); margin: -6px 0 14px; }
+.sheet .act { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 12px; font-size: 17px; min-height: 48px; }
+.sheet .primary { background: var(--link); color: #fff; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .sheet .primary { color: #111; } }
+.sheet .plain { color: var(--link); margin-top: 6px; }
+.sheet .menu button { display: block; width: 100%; text-align: left; padding: 14px 0; border-top: 1px solid var(--rule); font-size: 17px; min-height: 48px; }
+.sheet .menu button:first-child { border-top: 0; }
+.sheet .menu .danger { color: #c5221f; }
+@media (prefers-color-scheme: dark) { .sheet .menu .danger { color: #f28b82; } }
+
+/* Toast */
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--bar-h) + var(--safe-b) + 12px); z-index: 8; max-width: 26rem; margin: 0 auto;
+         background: var(--fg); color: var(--bg); border-radius: 10px; padding: 12px 14px; font-size: 15px; display: flex; justify-content: space-between; align-items: center;
+         opacity: 0; transform: translateY(8px); transition: opacity .15s, transform .15s; pointer-events: none; }
+.toast.on { opacity: 1; transform: none; pointer-events: auto; }
+.toast button { white-space: nowrap; overflow-wrap: normal; color: var(--bg); font-weight: 600; text-decoration: underline; min-height: 32px; padding-left: 12px; }
+@media (prefers-reduced-motion: reduce) { .sheet, .shade, .toast { transition: none; } }
+</style>
+</head>
+<body>
+
+<!-- LIST -->
+<section class="view on" id="v-list" aria-label="Stories">
+  <header class="top"><div class="wrap"><h1>Wagwan</h1><button class="tbtn" id="refresh">Refresh</button></div></header>
+  <div class="wrap">
+    <div class="search"><input type="search" placeholder="Search" aria-label="Search stories" enterkeyhint="search"></div>
+    <div class="status" id="status">Updated 7:42 am</div>
+    <div class="tabnote" id="tabnote"></div>
+    <ul class="list" id="list"></ul>
+    <details class="low" id="lowwrap"><summary id="lowsum">23 more, lower priority</summary><ul class="list" id="low"></ul></details>
+  </div>
+  <nav class="bar" aria-label="Sections"><div class="wrap">
+    <button class="cur" data-tab="top">For you</button>
+    <button data-tab="discover">Discover</button>
+    <button data-tab="saved">Saved</button>
+    <button data-tab="settings">Settings</button>
+  </div></nav>
+</section>
+
+<!-- STORY -->
+<section class="view" id="v-story" aria-label="Story">
+  <header class="top"><div class="wrap"><button class="tbtn" id="back">‹ Back</button><span style="flex:1"></span><button class="tbtn" id="more" aria-label="More options">More</button></div></header>
+  <article class="wrap story">
+    <h2 id="s-title"></h2>
+    <p class="when" id="s-when"></p>
+    <p class="why" id="s-why"></p>
+    <p class="body" id="s-body"></p>
+    <p class="legend" id="s-legend" hidden><i>Highlighted</i> is new since you last read this.</p>
+    <div id="s-diff-wrap"><div class="h3">Sources differ</div><ul class="diff" id="s-diff"></ul></div>
+    <div class="h3">Read in full</div>
+    <ul class="reads" id="s-reads"></ul>
+  </article>
+  <nav class="bar" aria-label="Story actions"><div class="wrap">
+    <button id="a-up" class="up" aria-pressed="false" aria-label="Thumbs up"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 10v11H3V10h4zm0 0l4-8c1.7 0 3 1.3 3 3v4h5.2c1.3 0 2.2 1.2 1.9 2.4l-1.8 7.5c-.3 1-1.1 1.6-2.1 1.6H7"/></svg><span>Relevant</span></span></button>
+    <button id="a-down" class="down" aria-pressed="false" aria-label="Thumbs down"><span class="ic"><svg viewBox="0 0 24 24" style="transform:scaleY(-1)"><path d="M7 10v11H3V10h4zm0 0l4-8c1.7 0 3 1.3 3 3v4h5.2c1.3 0 2.2 1.2 1.9 2.4l-1.8 7.5c-.3 1-1.1 1.6-2.1 1.6H7"/></svg><span>Not for me</span></span></button>
+    <button id="a-save"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span id="a-save-t">Save</span></span></button>
+  </div></nav>
+</section>
+
+<div class="shade" id="shade"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Details"><div class="grip"></div><div id="sheet-in"></div></div>
+<div class="toast" id="toast" role="status"><span id="toast-t"></span><button id="toast-undo">Undo</button></div>
+
+<script>
+const OUT = {
+  HL: { name: "Harbour Ledger", url: "https://harbourledger.example/rezoning-vote" },
+  CD: { name: "Coastline Daily", url: "https://coastlinedaily.example/4200-homes" },
+  CB: { name: "Cascade Business Review", url: "https://cascadebiz.example/density-bonus" },
+  PW: { name: "The Pacific Wire", url: "https://pacificwire.example/skytrain-fault" },
+  SO: { name: "Strait Observer", url: "https://straitobserver.example/skytrain" },
+  NT: { name: "Northgate Tech", url: "https://northgate.example/open-model" },
+  FW: { name: "Ferrous Weekly", url: "https://ferrous.example/2027-edition" }
+};
+
+const STORIES = [
+  { id: 1, tab: "top", pts: 94, title: "Vancouver council approves rezoning for 4,200 homes near transit stations",
+    topic: "BC housing", ago: "2h", updated: true, first: "6h ago", upd: "40m ago",
+    body: [
+      ["HL", "Vancouver city council voted 7 to 4 late Tuesday to rezone land around six transit stations.", "Council voted 7-4 shortly before midnight Tuesday to approve the station-area rezoning."],
+      ["HL", "Buildings of up to 12 storeys will be allowed within 400 metres of each station.", "The bylaw permits towers to 12 storeys within a 400 m radius of the six stations."],
+      ["CD", "Staff estimate the plan could add about 4,200 homes over ten years.", "City staff project roughly 4,200 new homes over the next decade."],
+      ["CB", "At least 20 percent of units in larger projects must be below-market rentals.", "Projects over 100 units must set aside a fifth of homes as below-market rentals."],
+      ["CD", "Several residents spoke against the plan, citing shadowing and school capacity.", "Speakers at the hearing raised concerns about shadows on parks and crowded schools."],
+      ["CB", "Developers said the density bonus makes smaller lots viable for the first time.", "Two builders told us the bonus finally makes 50-foot lots pencil out."],
+      ["HL", "The transit authority is considering added bus service to match the growth.", null, "unv"],
+      ["CB", "The first permits under the new rules could be issued in spring.", "Permits could start flowing as early as April, the planning department said.", "new"],
+      ["CD", "A hearing on related parking changes is set for November 18.", "Council will hear the parking-minimum changes at a November 18 meeting.", "new"]
+    ],
+    diff: [["Homes added", "Harbour Ledger 4,000, Coastline Daily 4,200"], ["Below-market share", "Cascade Business Review 20%, Harbour Ledger 15%"]],
+    reads: ["HL", "CD", "CB"] },
+  { id: 2, tab: "top", pts: 81, title: "SkyTrain delays expected through Friday after signal fault", topic: "Transit", ago: "3h", first: "5h ago", upd: "1h ago",
+    body: [
+      ["PW", "A signal fault near Commercial-Broadway is slowing trains on two lines.", "Crews are working on a failed signal near Commercial-Broadway."],
+      ["SO", "Riders should expect trains every 8 to 10 minutes at peak until Friday.", "Peak frequency drops to 8-10 minutes through Friday."],
+      ["PW", "Shuttle buses are running between two stations during evenings.", "Evening shuttles will run between the affected stations."]
+    ],
+    diff: [], reads: ["PW", "SO"] },
+  { id: 3, tab: "top", pts: 77, title: "Rust 2027 edition draft proposes simpler async closures", topic: "Rust", ago: "4h", first: "4h ago", upd: "4h ago",
+    body: [
+      ["FW", "The draft edition plan lists async closures and a new lint set as headline changes.", "Async closures and a refreshed lint group lead the draft."],
+      ["FW", "Feedback is open until the end of November.", "Comments close November 30."]
+    ], diff: [], reads: ["FW"] },
+  { id: 4, tab: "top", pts: 63, title: "Federal budget committee hears from provincial finance ministers", topic: "Canadian politics", ago: "5h", body: [], diff: [], reads: [] },
+  { id: 5, tab: "top", pts: 72, title: "Open-weight language model released under permissive licence, runs on laptops", topic: "Open-source AI", ago: "6h", read: true,
+    body: [["NT", "The 14B model ships under a permissive licence and runs on a laptop with 32 GB of memory.", "It fits in 32 GB of RAM and is Apache-licensed."]], diff: [], reads: ["NT"], first: "9h ago", upd: "6h ago" },
+  { id: 6, tab: "top", pts: 41, title: "Port of Vancouver reports record container volumes for September", topic: "Local business", ago: "8h", body: [], diff: [], reads: [] },
+  { id: 7, tab: "top", pts: 68, title: "Rental vacancy rate in Metro Vancouver edges up for a second quarter", topic: "BC housing", ago: "9h", read: true, body: [], diff: [], reads: [] },
+  { id: 8, tab: "top", pts: 55, title: "Winter ferry schedule changes announced for Nanaimo sailings", topic: "Transit", ago: "11h", body: [], diff: [], reads: [] }
+];
+STORIES.push(
+  { id: 20, tab: "discover", pts: 88, novel: "New angle, 7 feeds", title: "Divers map a drowned forest under the Fraser River delta, dated to 3,000 years ago", topic: "Science", ago: "5h", first: "7h ago", upd: "5h ago",
+    body: [
+      ["SO", "Divers and sonar teams mapped stumps of a submerged forest below the Fraser delta.", "A sonar survey revealed hundreds of rooted stumps beneath the delta."],
+      ["CD", "Radiocarbon dates put the trees at roughly 3,000 years old.", "Lab results date the wood to about 3,000 years before present."],
+      ["SO", "Researchers say the find records a sudden drop in land level, possibly from an earthquake.", "The team links the drowning to rapid subsidence, perhaps seismic."]
+    ], diff: [], reads: ["SO", "CD"] },
+  { id: 21, tab: "discover", pts: 79, novel: "Unusual, 3 feeds", title: "Two-person team ships an open-source e-ink tablet with a 6-week battery", topic: "Hardware", ago: "9h", body: [], diff: [], reads: [] },
+  { id: 22, tab: "discover", pts: 71, novel: "Widely covered, 12 feeds", title: "Europe's largest heat pump starts warming 100,000 homes from river water", topic: "Energy", ago: "12h", body: [], diff: [], reads: [] },
+  { id: 23, tab: "discover", pts: 64, novel: "New to you", title: "Why 1970s concrete is outlasting newer mixes, and what builders are copying", topic: "Engineering", ago: "1d", body: [], diff: [], reads: [] },
+  { id: 24, tab: "discover", pts: 58, novel: "Unusual, 2 feeds", title: "Library lends out sourdough starters and gets 400 sign-ups in a week", topic: "Local", ago: "1d", body: [], diff: [], reads: [] }
+);
+const LOW = ["Street festival returns to Commercial Drive this weekend", "Local bakery wins regional award", "Parking rules updated for three downtown zones"];
+
+const $ = s => document.querySelector(s);
+let current = null, original = false, saved = new Set();
+
+let tab = "top";
+const NOTES = { top: "Ranked by how well each story matches your topics and thumbs.", discover: "Not in your topics, but new, unusual or widely covered across your feeds." };
+function renderList() {
+  const items = STORIES.filter(s => s.tab === tab).sort((a, b) => b.pts - a.pts);
+  $("#tabnote").textContent = NOTES[tab] || "";
+  $("#lowwrap").hidden = tab !== "top";
+  $("#list").innerHTML = items.length ? items.map(s =>
+    `<li><a class="row${s.read ? " read" : ""}" href="#story-${s.id}" data-id="${s.id}">
+      <span class="txt"><span class="h">${s.title}</span>
+      <span class="m">${s.updated ? "<b>Updated</b> · " : ""}${tab === "discover" ? s.novel + " · " : ""}${s.topic} · ${s.ago}</span></span>
+      <span class="pts"><b>${s.pts}</b>pts</span></a></li>`).join("")
+    : `<li class="row" style="color:var(--dim)">Nothing here yet.</li>`;
+  $("#low").innerHTML = LOW.map(t => `<li><a class="row" href="#list"><span class="h">${t}</span></a></li>`).join("");
+}
+
+function openStory(id) {
+  const s = STORIES.find(x => x.id == id); if (!s) return;
+  current = s; original = false;
+  $("#s-title").textContent = s.title;
+  $("#s-when").textContent = `First seen ${s.first || s.ago + " ago"} · Updated ${s.upd || s.ago + " ago"}`;
+  $("#s-why").innerHTML = s.tab === "discover"
+    ? `<b>${s.pts} pts</b> · ${s.novel}`
+    : `<b>${s.pts} pts</b> · Matches ${s.topic}`;
+  setThumbs();
+  renderBody();
+  $("#s-legend").hidden = !s.body.some(b => b[3] === "new");
+  $("#s-diff-wrap").hidden = !s.diff.length;
+  $("#s-diff").innerHTML = s.diff.map(d => `<li>${d[0]}<br><span>${d[1]}</span></li>`).join("");
+  $("#s-reads").innerHTML = s.reads.map(k => `<li><a href="${OUT[k].url}" target="_blank" rel="noopener">${OUT[k].name}</a></li>`).join("");
+  $("#a-save-t").textContent = saved.has(s.id) ? "Saved" : "Save";
+  $("#a-save").classList.toggle("on", saved.has(s.id));
+  show("story"); window.scrollTo(0, 0);
+  s.read = true;
+}
+
+function renderBody() {
+  const s = current;
+  if (!s.body.length) { $("#s-body").innerHTML = `<span style="color:var(--dim)">Mockup: no text for this story. Try the first three.</span>`; return; }
+  $("#s-body").innerHTML = s.body.map((b, i) => {
+    const txt = original && b[2] ? b[2] : b[1];
+    const cls = ["s", b[3] === "new" ? "new" : "", b[3] === "unv" && !original ? "unv" : ""].join(" ");
+    if (original && !b[2]) return "";
+    return `<span class="${cls}" role="link" tabindex="0" data-i="${i}">${txt}</span>`;
+  }).join(" ");
+}
+
+function show(v) {
+  $("#v-list").classList.toggle("on", v === "list");
+  $("#v-story").classList.toggle("on", v === "story");
+}
+
+function openSheet(html) { $("#sheet-in").innerHTML = html; $("#sheet").classList.add("on"); $("#shade").classList.add("on"); }
+function closeSheet() { $("#sheet").classList.remove("on"); $("#shade").classList.remove("on"); document.querySelectorAll(".s.sel").forEach(e => e.classList.remove("sel")); }
+
+let toastTimer;
+function toast(t, undo) {
+  $("#toast-t").textContent = t; $("#toast-undo").hidden = !undo;
+  $("#toast-undo").onclick = () => { undo && undo(); $("#toast").classList.remove("on"); };
+  $("#toast").classList.add("on"); clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $("#toast").classList.remove("on"), 3500);
+}
+
+// Tap a sentence: first tap shows its source in a sheet, sheet button opens the article.
+function sentenceTap(el) {
+  const b = current.body[+el.dataset.i], o = OUT[b[0]];
+  document.querySelectorAll(".s.sel").forEach(e => e.classList.remove("sel"));
+  el.classList.add("sel");
+  const unv = b[3] === "unv";
+  openSheet(`<div class="src">${o.name}</div>
+    ${b[2] ? `<p class="orig">“${b[2]}”</p>` : ""}
+    ${unv ? `<p class="warn">This line could not be matched to the article. Check the source before relying on it.</p>` : ""}
+    <a class="act primary" href="${o.url}" target="_blank" rel="noopener">Open in ${o.name}</a>
+    <button class="act plain" id="sheet-close">Close</button>`);
+  $("#sheet-close").onclick = closeSheet;
+}
+
+document.addEventListener("click", e => {
+  const row = e.target.closest(".row[data-id]");
+  if (row) { e.preventDefault(); history.pushState({ id: row.dataset.id }, "", "#story-" + row.dataset.id); openStory(row.dataset.id); return; }
+  const s = e.target.closest(".body .s"); if (s) { sentenceTap(s); return; }
+  const tb = e.target.closest("[data-tab]");
+  if (tb) {
+    const tab = tb;
+    document.querySelectorAll("[data-tab]").forEach(t => t.classList.toggle("cur", t === tab));
+    if (tab.dataset.tab === "top" || tab.dataset.tab === "discover") { setTab(tab.dataset.tab); }
+    else toast(`${tab.textContent} is not in this mockup`);
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.matches(".body .s")) sentenceTap(e.target);
+  if (e.key === "Escape") closeSheet();
+});
+$("#shade").onclick = closeSheet;
+$("#back").onclick = () => history.length > 1 ? history.back() : (show("list"), renderList());
+window.addEventListener("popstate", () => { closeSheet(); const m = location.hash.match(/story-(\d+)/); if (m) openStory(m[1]); else { show("list"); renderList(); } });
+$("#refresh").onclick = () => { $("#status").textContent = "Updating..."; setTimeout(() => { $("#status").textContent = "Updated just now"; }, 700); };
+
+function setTab(t) { tab = t; renderList(); window.scrollTo(0, 0); }
+const vote = {};
+function setThumbs() {
+  const v = vote[current.id] || 0;
+  $("#a-up").classList.toggle("on", v === 1); $("#a-up").setAttribute("aria-pressed", v === 1);
+  $("#a-down").classList.toggle("on", v === -1); $("#a-down").setAttribute("aria-pressed", v === -1);
+}
+function cast(dir) {
+  const s = current, prev = vote[s.id] || 0, next = prev === dir ? 0 : dir;
+  vote[s.id] = next;
+  STORIES.filter(x => x.topic === s.topic).forEach(x => x.pts = Math.max(0, Math.min(99, x.pts + (next - prev) * 6)));
+  setThumbs();
+  $("#s-why").querySelector("b").textContent = s.pts + " pts";
+  if (next === 1) toast(`More like this. ${s.topic} ranks higher.`, () => cast(1));
+  else if (next === -1) toast(`Less like this. ${s.topic} ranks lower.`, () => cast(-1));
+  else toast("Vote removed");
+}
+$("#a-up").onclick = () => cast(1);
+$("#a-down").onclick = () => cast(-1);
+$("#a-save").onclick = () => {
+  const id = current.id, on = !saved.has(id);
+  on ? saved.add(id) : saved.delete(id);
+  $("#a-save-t").textContent = on ? "Saved" : "Save"; $("#a-save").classList.toggle("on", on);
+  toast(on ? "Saved" : "Removed from saved");
+};
+$("#more").onclick = () => {
+  const names = current.reads.map(k => OUT[k].name);
+  openSheet(`<div class="menu">
+    <button id="m-orig">${original ? "Show summary" : "Show original sentences"}</button>
+    <button id="m-share">Share</button>
+    <button id="m-topic" class="danger">Mute topic: ${current.topic}</button>
+    ${names.length ? `<button id="m-src" class="danger">Mute a source…</button>` : ""}
+  </div><button class="act plain" id="sheet-close">Cancel</button>`);
+  $("#sheet-close").onclick = closeSheet;
+  $("#m-orig").onclick = () => { original = !original; renderBody(); closeSheet(); };
+  $("#m-share").onclick = () => { closeSheet(); navigator.share ? navigator.share({ title: current.title, url: location.href }).catch(() => {}) : toast("Link copied"); };
+  $("#m-topic").onclick = () => { closeSheet(); toast(`Muted ${current.topic}`, () => toast("Undone")); };
+  const ms = $("#m-src");
+  if (ms) ms.onclick = () => {
+    openSheet(`<div class="menu">${current.reads.map(k => `<button data-mute="${k}">${OUT[k].name}</button>`).join("")}</div><button class="act plain" id="sheet-close">Cancel</button>`);
+    $("#sheet-close").onclick = closeSheet;
+    document.querySelectorAll("[data-mute]").forEach(b => b.onclick = () => { closeSheet(); toast(`Muted ${OUT[b.dataset.mute].name}`, () => toast("Undone")); });
+  };
+};
+
+renderList();
+const m0 = location.hash.match(/story-(\d+)/); if (m0) openStory(m0[1]);
+</script>
+</body>
+</html>

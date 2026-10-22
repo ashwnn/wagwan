@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://atom.example.test/feed</id>
+  <title>Fixture Atom Desk</title>
+  <updated>2026-10-20T11:00:00Z</updated>
+  <link rel="self" href="https://atom.example.test/feed" />
+  <link rel="alternate" href="https://atom.example.test/" />
+  <entry>
+    <id>urn:fixture:atom:bridge-1</id>
+    <title>Bridge inspection scheduled</title>
+    <updated>2026-10-20T10:30:00Z</updated>
+    <link rel="self" href="https://atom.example.test/entries/bridge-1" />
+    <link rel="alternate" href="https://atom.example.test/bridge-inspection" />
+    <content type="html"><![CDATA[<p>Inspectors will examine the north bridge next week.</p>]]></content>
+  </entry>
+</feed>
