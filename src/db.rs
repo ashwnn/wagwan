@@ -1112,8 +1112,10 @@ pub fn encode_vector(vector: &[f32]) -> Vec<u8> {
 }
 pub fn decode_vector(bytes: &[u8]) -> Vec<f32> {
     bytes
-        .chunks_exact(4)
-        .map(|n| f32::from_le_bytes([n[0], n[1], n[2], n[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|n| f32::from_le_bytes(*n))
         .collect()
 }
 fn map_story(row: &rusqlite::Row<'_>) -> rusqlite::Result<StoryListRow> {

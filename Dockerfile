@@ -2,7 +2,7 @@ FROM rust:1-alpine AS builder
 RUN apk add --no-cache build-base musl-dev
 WORKDIR /build
 COPY . .
-RUN cargo build --release --bin wagwan \
+RUN cargo build --locked --release --bin wagwan \
     && mkdir -p /data \
     && chown 10001:10001 /data
 
