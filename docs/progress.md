@@ -105,3 +105,7 @@ Local Firefox could launch but content processes failed OS sandbox namespace set
 ### Browser CI evidence
 
 [Run 39818531646](https://github.com/ashwnn/wagwan/actions/runs/39818531646), commit `719c2fd`, passed the Rust checks, seven-view Firefox checks at both phone widths and both themes, and the live 50-feed smoke step. The `verification` artifact contains 32 screenshots and the retained smoke results. The reader and More screenshots were inspected and copied into `docs/screenshots/`; they show synthetic fixture data, not live news. Subsequent commit `4da00c7` changes the evaluator and documentation, not the rendered UI.
+
+### Container startup blocker found by CI
+
+The first native container check built successfully but failed at runtime: SQLite reported `VFS is unable to determine a suitable directory for temporary files` (6410). The scratch image had no `/tmp`. The Dockerfile now copies an empty directory with mode 1777 to `/tmp`, retaining the non-root runtime user. Both architecture checks must pass after this correction before merging.
