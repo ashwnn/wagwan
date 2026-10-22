@@ -33,6 +33,12 @@ For you ranks stories against your topics and thumbs. Discover shows unusual rep
 
 The phone layout follows the [clickable reader preview](docs/mockup.html). The application uses server-rendered pages; native form actions work without JavaScript, with sheets and optimistic actions added when JavaScript is available.
 
+## Screenshots
+
+Actual application templates with synthetic test data, captured by Firefox in CI.
+
+<img src="docs/screenshots/reader-dark.png" width="260" alt="Wagwan reader in dark mode"> <img src="docs/screenshots/more-light.png" width="260" alt="Wagwan More menu in light mode">
+
 ## Local development
 
 ```sh

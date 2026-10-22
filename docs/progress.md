@@ -97,7 +97,11 @@ Still required before claiming all PLAN.md milestones complete:
 1. Full one-hour ingestion run and 24-hour 400-feed RAM/CPU measurement.
 2. Complete SemEval article JSON alongside the downloaded annotation table, then measured F1 and threshold calibration. An annotation CSV alone contains URLs, not article text. No F1 score is claimed.
 3. Real-publisher duplicate accuracy and manual event-cluster review.
-4. Successful browser/container CI evidence, Lighthouse >=95, and optional Ollama integration.
+4. Successful container CI evidence, Lighthouse >=95, and optional Ollama integration.
 5. An end-to-end Cloudflare Access deployment in the owner's account.
 
 Local Firefox could launch but content processes failed OS sandbox namespace setup (`uid_map: EPERM`). No sandbox was disabled and no local browser pass is claimed. CI browser and image results must be read from the specific run; adding checks does not mean they passed.
+
+### Browser CI evidence
+
+[Run 39818531646](https://github.com/ashwnn/wagwan/actions/runs/39818531646), commit `719c2fd`, passed the Rust checks, seven-view Firefox checks at both phone widths and both themes, and the live 50-feed smoke step. The `verification` artifact contains 32 screenshots and the retained smoke results. The reader and More screenshots were inspected and copied into `docs/screenshots/`; they show synthetic fixture data, not live news. Subsequent commit `4da00c7` changes the evaluator and documentation, not the rendered UI.
