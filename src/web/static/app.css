@@ -91,6 +91,8 @@ button { cursor:pointer; }
 .shade.on { opacity:1; pointer-events:auto; }
 .sheet { position:fixed; left:0; right:0; bottom:0; z-index:10; background:var(--sheet); border-radius:14px 14px 0 0; padding:8px 16px calc(16px + var(--safe-b)); transform:translateY(105%); transition:transform .2s ease; max-width:42rem; margin:0 auto; }
 .sheet.on { transform:none; }
+.sheet { max-height:90dvh; overflow-y:auto; }
+.sheet .more-menu { position:static; width:100%; max-height:none; padding:0; border:0; box-shadow:none; }
 .grip { width:36px; height:5px; border-radius:3px; background:var(--rule); margin:0 auto 12px; }
 .sheet .src { font-weight:600; font-size:16px; }
 .sheet .orig { color:var(--dim); font-size:15px; margin:6px 0 14px; }

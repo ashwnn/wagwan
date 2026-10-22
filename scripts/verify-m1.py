@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -92,6 +93,10 @@ def main():
         '--output-dir', type=Path, default=Path('.build/m1-verification'),
         help='base directory for retained per-run artifacts',
     )
+    parser.add_argument(
+        "--models-dir", type=Path,
+        help="copy previously downloaded model assets into the isolated run",
+    )
     args = parser.parse_args()
     if args.smoke_seconds < 1:
         parser.error('--smoke-seconds must be positive')
@@ -102,6 +107,8 @@ def main():
     output_dir = make_output_dir(args.output_dir.resolve())
     db_dir = output_dir / 'data'
     db_dir.mkdir()
+    if args.models_dir:
+        shutil.copytree(args.models_dir.resolve(), db_dir / "models")
     db_path = db_dir / 'wagwan.sqlite3'
     logs_path = output_dir / 'server.log'
     opml_path = output_dir / 'feeds.opml'

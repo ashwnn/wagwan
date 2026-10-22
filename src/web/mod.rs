@@ -203,7 +203,7 @@ fn static_asset(content_type: &'static str, body: &'static str) -> impl IntoResp
     (
         [
             (header::CONTENT_TYPE, content_type),
-            (header::CACHE_CONTROL, "public, max-age=31536000"),
+            (header::CACHE_CONTROL, "no-cache"),
         ],
         body,
     )
@@ -977,12 +977,30 @@ mod tests {
         .unwrap()
     }
 
+    #[test]
+    fn fixture_script_runs_after_the_document_body() {
+        let html = inline_assets(
+            "<head><script src=\"/static/app.js\" defer></script></head><body><main>Reader</main></body>",
+        );
+        assert!(html.find("<main>").unwrap() < html.find("<script>").unwrap());
+        assert!(html.ends_with("</script></body>"));
+    }
+
     #[tokio::test]
     async fn health_feed_add_failure_retry_and_delete_work_through_router() {
         let harness = Harness::new();
         let health = request(harness.router(), "GET", "/healthz", None, Body::empty()).await;
         assert_eq!(health.status(), StatusCode::OK);
         assert_eq!(response_text(health).await, "ok");
+        let asset = request(
+            harness.router(),
+            "GET",
+            "/static/app.js",
+            None,
+            Body::empty(),
+        )
+        .await;
+        assert_eq!(asset.headers()[header::CACHE_CONTROL], "no-cache");
 
         let added = request(
             harness.router(),
@@ -1424,9 +1442,10 @@ mod tests {
             "<link rel=\"stylesheet\" href=\"/static/app.css\">",
             &format!("<style>{}</style>", include_str!("static/app.css")),
         )
+        .replace("<script src=\"/static/app.js\" defer></script>", "")
         .replace(
-            "<script src=\"/static/app.js\" defer></script>",
-            &format!("<script>{}</script>", include_str!("static/app.js")),
+            "</body>",
+            &format!("<script>{}</script></body>", include_str!("static/app.js")),
         )
     }
 }

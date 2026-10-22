@@ -22,7 +22,7 @@
     sheet.classList.add("on");
     shade.classList.add("on");
     sheet.setAttribute("aria-hidden", "false");
-    (focusTarget || $("a,button", content))?.focus();
+    (focusTarget || $("a,button", sheetIn))?.focus();
   }
 
   function closeSheet() {
@@ -144,7 +144,15 @@
     if (more) {
       event.preventDefault();
       const menu = $(".more-menu", more.parentElement);
-      if (menu) openSheet(menu.cloneNode(true));
+      if (menu) {
+        const content = document.createDocumentFragment();
+        content.append(menu.cloneNode(true));
+        const close = element("button", "act plain", "Close");
+        close.type = "button";
+        close.dataset.closeSheet = "true";
+        content.append(close);
+        openSheet(content);
+      }
       return;
     }
     const shareLink = event.target.closest(".share-link");

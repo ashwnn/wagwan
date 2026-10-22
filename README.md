@@ -33,6 +33,12 @@ For you ranks stories against your topics and thumbs. Discover shows unusual rep
 
 The phone layout follows the [clickable reader preview](docs/mockup.html). The application uses server-rendered pages; native form actions work without JavaScript, with sheets and optimistic actions added when JavaScript is available.
 
+## Screenshots
+
+Actual application templates with synthetic test data, captured by Firefox in CI.
+
+<img src="docs/screenshots/reader-dark.png" width="260" alt="Wagwan reader in dark mode"> <img src="docs/screenshots/more-light.png" width="260" alt="Wagwan More menu in light mode">
+
 ## Local development
 
 ```sh
@@ -42,7 +48,7 @@ WAGWAN_DATA_DIR=./data cargo run -- serve
 
 The local Potion model downloads on first start and is verified against pinned SHA-256 hashes. For offline operation, prepopulate the six model assets listed in `src/embed.rs` under `data/models/`. Story processing retries if model loading fails; feed management and ingestion remain available.
 
-Implementation of the reader, processing pipeline, optional rewriting and deployment artifacts is present. The development build, Clippy, JavaScript syntax check and 67 offline tests pass. Browser, real-model quality, live deployment and long-duration resource checks remain pending because this agent environment blocks the necessary runtime access. See [implementation status](docs/progress.md) for outstanding quality and deployment gates.
+Implementation of the reader, processing pipeline, optional rewriting and deployment artifacts is present. The development build, Clippy, JavaScript syntax check and 69 offline tests pass. A live 50-feed smoke run also passes with checksum-verified Potion assets. CI now checks mobile browser interactions and native amd64/arm64 container startup and persistence. Real-model clustering quality, deployment and long-duration resource gates remain pending. See [implementation status](docs/progress.md) for outstanding quality and deployment gates.
 
 ## Configuration
 
@@ -107,3 +113,28 @@ scripts/capture-ui.sh
 ```
 
 This requires Firefox with working sandbox support and writes PNGs to `docs/screenshots/`. Set `CAPTURE_BROWSER` to a Firefox executable if needed. The command first generates self-contained app HTML under `.build/ui/`; it never substitutes a hand-drawn image for a screenshot.
+
+### Browser and live verification
+
+CI uploads mobile screenshots and live-smoke artifacts under `verification`.
+To run the same browser checks locally (development tooling only):
+
+```sh
+WAGWAN_UI_ARTIFACT_DIR=.build/ui cargo test --locked
+npm install --no-save --package-lock=false playwright@1.62.1
+npx playwright install --with-deps firefox
+node scripts/browser-smoke.cjs
+```
+
+The browser checks render the real Askama templates; their POST responses are mocked.
+Rust route tests separately verify persistence and native forms. For a live ingestion check:
+
+```sh
+cargo build --locked
+python3 scripts/verify-m1.py --smoke --smoke-seconds 65
+# Reuse model assets if already downloaded:
+python3 scripts/verify-m1.py --smoke --smoke-seconds 65 --models-dir data/models
+```
+
+Omit `--smoke` for the full one-hour ingestion gate. A short smoke run does not
+satisfy the one-hour or 24-hour resource requirements.

@@ -789,6 +789,7 @@ Each milestone ends in an implemented state. Owner override (2026-10-22): build 
 
 | Item | Status and default |
 |---|---|
+| Release verification | CI exercises mobile fixture views and native container startup/persistence before tagged publishing. Full duration, quality and account deployment gates still require measured evidence; see docs/progress.md |
 | Implementation and validation order | Owner initially deferred testing, then authorized verification on 2026-10-22. Runtime, quality and footprint gates remain pending until evidence proves them |
 | Local Compose startup | Compose builds the local source by default, avoiding a dependency on a release image that has not yet been published; tagged GHCR releases remain configured |
 | Time zones | `time-tz` supplies IANA rules inside the scratch container; no host tzdata files are needed |
