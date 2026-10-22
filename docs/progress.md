@@ -78,3 +78,26 @@ Blocked checks, with observed evidence:
 The application is not claimed fully verified or released.
 
 The CLI integration tests launch the actual binary with isolated child environments. They verify `_FILE` precedence (including CRLF secret files), repeated import counts, rejection of invalid startup configuration before any database is opened, and failure rather than silently falling back when a secret file is missing. A polling-interval error was corrected to identify the offending environment variable.
+
+## Release-readiness follow-up (2026-10-22)
+
+This section supersedes the earlier environment limitations where new evidence is available.
+
+- Fixed the initial GitHub CI failure on stable Rust 1.99: vector decoding now uses fixed-size array chunks. Formatting, Clippy with all targets/features and warnings denied, and 69 Rust tests pass locally.
+- Fixed the mobile More sheet: its menu is in normal flow, height is bounded with scrolling, it receives keyboard focus, and it has an explicit Close action.
+- Unversioned CSS, JS and manifest responses now require cache revalidation, so an upgrade cannot leave the browser using year-old assets.
+- Corrected generated fixture HTML to run JavaScript after the document body, matching the production deferred script. The previous fixture capture did not exercise initialized sheet/toast references.
+- Added `scripts/browser-smoke.cjs`: seven actual Askama views at 360px and 390px in light/dark, overflow checks, source and More sheets, focus restoration, save and undo, and screenshots. Browser POST responses are mocked; the Rust route tests cover native actions and persistence. GitHub CI runs it and retains the artifacts.
+- CI builds native amd64 and arm64 images, checks container health, imports feeds, restarts and verifies the import remains idempotent. Tagged image publishing depends on these checks. Docker builds use Cargo.lock.
+- Live local HTTP smoke passed with 50 synthetic feeds. A 65-second run using all six checksum-verified Potion assets stored 50 articles, assigned all 50 to stories, stored 100 story-text rows and observed conditional 304 requests. These fixtures prove plumbing, not clustering quality. `scripts/verify-m1.py --models-dir PATH` can reuse downloaded assets in an isolated run.
+- The actual Zenodo `final_eval_data.csv` exposed an evaluator bug: published `link1`/`link2` and `url1_lang`/`url2_lang` headers were not recognized. These are now supported, with a regression test covering both cross-language directions and missing article records.
+
+Still required before claiming all PLAN.md milestones complete:
+
+1. Full one-hour ingestion run and 24-hour 400-feed RAM/CPU measurement.
+2. Complete SemEval article JSON alongside the downloaded annotation table, then measured F1 and threshold calibration. An annotation CSV alone contains URLs, not article text. No F1 score is claimed.
+3. Real-publisher duplicate accuracy and manual event-cluster review.
+4. Successful browser/container CI evidence, Lighthouse >=95, and optional Ollama integration.
+5. An end-to-end Cloudflare Access deployment in the owner's account.
+
+Local Firefox could launch but content processes failed OS sandbox namespace setup (`uid_map: EPERM`). No sandbox was disabled and no local browser pass is claimed. CI browser and image results must be read from the specific run; adding checks does not mean they passed.

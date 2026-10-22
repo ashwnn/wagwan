@@ -280,8 +280,16 @@ pub fn parse_pair_file(input: &str) -> Result<Vec<SimilarityPair>> {
 fn has_native_pair_columns(headers: &[String]) -> bool {
     column(headers, &["pair_id", "pairid", "id"]).is_some()
         && column(headers, &["overall", "overall_score", "score"]).is_some()
-        && (column(headers, &["url1", "url_1", "url_a", "article_id1", "id1"]).is_some()
-            || column(headers, &["url2", "url_2", "url_b", "article_id2", "id2"]).is_some())
+        && (column(
+            headers,
+            &["url1", "link1", "url_1", "url_a", "article_id1", "id1"],
+        )
+        .is_some()
+            || column(
+                headers,
+                &["url2", "link2", "url_2", "url_b", "article_id2", "id2"],
+            )
+            .is_some())
 }
 
 fn parse_native_records(
@@ -298,14 +306,20 @@ fn parse_native_records(
     let score_col =
         column(&headers, &["overall", "overall_score", "score"]).context("no Overall column")?;
     let pair_col = column(&headers, &["pair_id", "pairid", "id"]);
-    let first_col = column(&headers, &["url1", "url_1", "url_a", "article_id1", "id1"]);
-    let second_col = column(&headers, &["url2", "url_2", "url_b", "article_id2", "id2"]);
+    let first_col = column(
+        &headers,
+        &["url1", "link1", "url_1", "url_a", "article_id1", "id1"],
+    );
+    let second_col = column(
+        &headers,
+        &["url2", "link2", "url_2", "url_b", "article_id2", "id2"],
+    );
     let lang_col = column(
         &headers,
         &["pair_lang", "pair_language", "language", "lang"],
     );
-    let first_lang_col = column(&headers, &["lang1", "language1", "language_a"]);
-    let second_lang_col = column(&headers, &["lang2", "language2", "language_b"]);
+    let first_lang_col = column(&headers, &["url1_lang", "lang1", "language1", "language_a"]);
+    let second_lang_col = column(&headers, &["url2_lang", "lang2", "language2", "language_b"]);
     let mut pairs = Vec::new();
     for row in records
         .iter()
@@ -688,6 +702,34 @@ mod tests {
         assert_eq!(pairs[0].overall, 1.2);
         assert!(pairs[0].first.starts_with("Synthetic shared event\n"));
         assert!(pairs[0].second.contains("English second article body."));
+    }
+
+    #[test]
+    fn loads_published_zenodo_columns_and_excludes_cross_language_pairs() {
+        let dir = TempDir::new();
+        // Column names from Zenodo record 6507872 final_eval_data.csv.
+        fs::write(dir.0.join("final_eval_data.csv"),
+            "url1_lang,url2_lang,pair_id,link1,link2,ia_link1,ia_link2,GEO,ENT,TIME,NAR,OVERALL,STYLE,TONE\nen,en,101_102,https://example.test/a,https://example.test/b,,,1,1,1,1,1.2,1,1\nen,fr,101_103,https://example.test/a,https://example.test/c,,,1,1,1,1,2,1,1\nfr,en,103_102,https://example.test/c,https://example.test/b,,,1,1,1,1,2,1,1\n",
+        ).unwrap();
+        fs::write(
+            dir.0.join("101.json"),
+            r#"{"title":"First","text":"First body"}"#,
+        )
+        .unwrap();
+        fs::write(
+            dir.0.join("102.json"),
+            r#"{"title":"Second","text":"Second body"}"#,
+        )
+        .unwrap();
+        // No record 103: foreign-language rows must be filtered before validation.
+        let pairs = load_pairs(&dir.0).unwrap();
+        assert_eq!(pairs.len(), 1);
+        assert_eq!(pairs[0].overall, 1.2);
+        assert_eq!(pairs[0].first, "First\nFirst body");
+        fs::remove_file(dir.0.join("102.json")).unwrap();
+        let error = load_pairs(&dir.0).unwrap_err().to_string();
+        assert!(error.contains("1 English rows"), "{error}");
+        assert!(error.contains("1 missing article records"), "{error}");
     }
 
     #[test]
